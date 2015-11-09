@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/quii/mockingjay-server/mockingjay"
 	"github.com/quii/mockingjay-server/monkey"
+	"github.com/quii/mockingjay-server/ui"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -26,6 +27,7 @@ type application struct {
 	mockingjayServerMaker serverMaker
 	monkeyServerMaker     monkeyServerMaker
 	logger                *log.Logger
+	admin                 http.Handler
 }
 
 func defaultApplication(logger *log.Logger) (app *application) {
@@ -36,6 +38,7 @@ func defaultApplication(logger *log.Logger) (app *application) {
 	app.mockingjayServerMaker = mockingjay.NewServer
 	app.monkeyServerMaker = monkey.NewServer
 	app.logger = logger
+	app.admin = &ui.Handler{}
 
 	return
 }
@@ -69,6 +72,7 @@ func (a *application) Run(configPath string, port int, realURL string, monkeyCon
 		}
 
 		http.Handle("/", monkeyServer)
+		http.Handle("/mj-admin", a.admin)
 		a.logger.Printf("Serving %d endpoints defined from %s on port %d", len(endpoints), configPath, port)
 		err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 		if err != nil {
