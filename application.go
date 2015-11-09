@@ -38,7 +38,7 @@ func defaultApplication(logger *log.Logger) (app *application) {
 	app.mockingjayServerMaker = mockingjay.NewServer
 	app.monkeyServerMaker = monkey.NewServer
 	app.logger = logger
-	app.admin = &ui.Handler{}
+	app.admin = ui.NewHandler()
 
 	return
 }
@@ -71,8 +71,10 @@ func (a *application) Run(configPath string, port int, realURL string, monkeyCon
 			return err
 		}
 
-		http.Handle("/", monkeyServer)
+		http.Handle("/mj-admin/static/", http.StripPrefix("/mj-admin/static/", http.FileServer(http.Dir("./ui/static"))))
 		http.Handle("/mj-admin", a.admin)
+		http.Handle("/", monkeyServer)
+
 		a.logger.Printf("Serving %d endpoints defined from %s on port %d", len(endpoints), configPath, port)
 		err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 		if err != nil {

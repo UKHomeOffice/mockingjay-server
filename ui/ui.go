@@ -1,12 +1,29 @@
 package ui
 
 import (
-	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 )
 
-type Handler struct{}
+type Handler struct {
+	layout *template.Template
+}
+
+func NewHandler() *Handler {
+	h := new(Handler)
+
+	t, err := template.ParseFiles("ui/template.html")
+
+	if err != nil {
+		log.Fatal("Unable to load template file for UI ", err)
+	}
+
+	h.layout = t
+
+	return h
+}
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, world")
+	h.layout.Execute(w, nil)
 }
